@@ -1,4 +1,4 @@
-package src.com.company.repositories;
+package com.company.repositories;
 
 import com.company.data.interfaces.IDB;
 import com.company.models.User;

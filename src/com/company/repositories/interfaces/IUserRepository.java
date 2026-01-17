@@ -1,4 +1,4 @@
-package src.com.company.repositories.interfaces;
+package com.company.repositories.interfaces;
 
 import com.company.models.User;
 

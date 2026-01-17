@@ -1,4 +1,4 @@
-package src.com.company.data;
+package com.company.data;
 
 import com.company.data.interfaces.IDB;
 

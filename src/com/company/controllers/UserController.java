@@ -1,4 +1,4 @@
-package src.com.company.controllers;
+package com.company.controllers;
 
 import com.company.controllers.interfaces.IUserController;
 import com.company.models.User;
