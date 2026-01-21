@@ -14,6 +14,12 @@ public class SymptomEntry {
         this.entryDate = entryDate;
     }
 
+    public SymptomEntry(int patientId, String symptom) {
+        this.patientId = patientId;
+        this.symptom = symptom;
+        this.entryDate = LocalDate.now();
+    }
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public int getPatientId() { return patientId; }
