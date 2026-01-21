@@ -1,5 +1,6 @@
 package com.company.controllers;
 
+import com.company.models.MedicalRecord;
 import com.company.repositories.IMedicalRecordRepository;
 
 public class MedicalRecordController {
@@ -11,6 +12,8 @@ public class MedicalRecordController {
     }
 
     public void show(int patientId) {
-        System.out.println(repo.getByPatientId(patientId));
+        MedicalRecord record = repo.getByPatientId(patientId);
+        System.out.println("Medical history:");
+        record.symptoms.forEach(System.out::println);
     }
 }

@@ -1,17 +1,18 @@
 package com.company.controllers;
 
-import com.company.repositories.SymptomEntryRepository;
+import com.company.models.SymptomEntry;
+import com.company.repositories.ISymptomEntryRepository;
 
 public class SymptomEntryController {
 
-    private final SymptomEntryRepository symptomEntryRepository;
+    private final ISymptomEntryRepository repo;
 
-    public SymptomEntryController(SymptomEntryRepository symptomEntryRepository) {
-        this.symptomEntryRepository = symptomEntryRepository;
+    public SymptomEntryController(ISymptomEntryRepository repo) {
+        this.repo = repo;
     }
 
-    public void addSymptom(int appointmentId, String description) {
-        symptomEntryRepository.create(appointmentId, description);
+    public void add(int patientId, String text) {
+        repo.addSymptomEntry(new SymptomEntry(patientId, text));
         System.out.println("Symptom added");
     }
 }

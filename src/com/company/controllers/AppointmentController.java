@@ -14,7 +14,9 @@ public class AppointmentController {
     }
 
     public void make(int patientId, int doctorId) {
-        repo.addAppointment(new Appointment(patientId, doctorId, LocalDate.now()));
+        Appointment appointment =
+                new Appointment(patientId, doctorId, LocalDate.now());
+        repo.addAppointment(appointment);
         System.out.println("Appointment created");
     }
 }
