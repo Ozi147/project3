@@ -1,10 +1,16 @@
-package repositories.impl;
+package com.company.repositories.impl;
 
-import repositories.MedicalRecordRepository;
+import com.company.models.MedicalRecord;
+import com.company.models.SymptomEntry;
+import com.company.repositories.IMedicalRecordRepository;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
 
-public class MedicalRecordRepositoryImpl implements MedicalRecordRepository {
+public class MedicalRecordRepositoryImpl implements IMedicalRecordRepository {
 
     private final Connection connection;
 
@@ -13,18 +19,32 @@ public class MedicalRecordRepositoryImpl implements MedicalRecordRepository {
     }
 
     @Override
-    public int create(int patientId, String diagnosis) {
-        String sql = "INSERT INTO medical_records(patient_id, diagnosis) VALUES (?, ?) RETURNING id";
+    public MedicalRecord getByPatientId(int patientId) {
+        MedicalRecord record = new MedicalRecord(patientId);
+
+        String sql = """
+                SELECT description, created_at
+                FROM symptom_entries
+                WHERE patient_id = ?
+                ORDER BY created_at
+                """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, patientId);
-            ps.setString(2, diagnosis);
+
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            while (rs.next()) {
+                record.symptoms.add(
+                        new SymptomEntry(
+                                rs.getString("description"),
+                                rs.getDate("created_at").toLocalDate()
+                        )
+                );
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return -1;
+        return record;
     }
 }

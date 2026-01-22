@@ -6,14 +6,13 @@ import com.company.repositories.IDoctorRepository;
 public class DoctorController {
 
     private final IDoctorRepository repo;
-    private int nextId = 1;
 
     public DoctorController(IDoctorRepository repo) {
         this.repo = repo;
     }
 
     public void addDoctor(String name, String specialization) {
-        Doctor doctor = new Doctor(nextId++, name, specialization);
+        Doctor doctor = new Doctor(name, specialization); // БЕЗ id
         repo.addDoctor(doctor);
         System.out.println("Doctor added");
     }

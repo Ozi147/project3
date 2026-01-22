@@ -1,75 +1,63 @@
 package com.company;
 
-import java.util.InputMismatchException;
-import java.util.Scanner;
+import com.company.controllers.*;
+import com.company.data.PostgresDB;
+import com.company.models.Patient;
 
 public class MyApplication {
-    private final Scanner scanner = new Scanner(System.in);
 
-    private final IUserController controller;
+    public static void start() {
+        // подключение к базе
+        PostgresDB db = new PostgresDB();
 
-    public MyApplication(IUserController controller) {
-        this.controller = controller;
-    }
+        // создаем репозитории
+        var patientRepo = new com.company.repositories.impl.PatientRepositoryImpl(db.getConnection());
+        var symptomRepo = new com.company.repositories.impl.SymptomEntryRepositoryImpl(db.getConnection());
+        var doctorRepo = new com.company.repositories.impl.DoctorRepositoryImpl(db.getConnection());
+        var appointmentRepo = new com.company.repositories.impl.AppointmentRepositoryImpl(db.getConnection());
+        var medicalRecordRepo = new com.company.repositories.impl.MedicalRecordRepositoryImpl(db.getConnection());
 
-    private void mainMenu() {
-        System.out.println();
-        System.out.println("Welcome to My Application");
-        System.out.println("Select option:");
-        System.out.println("1. Get all users");
-        System.out.println("2. Get user by id");
-        System.out.println("3. Create user");
-        System.out.println("0. Exit");
-        System.out.println();
-        System.out.print("Enter option (1-3): ");
-    }
+        // создаем контроллеры
+        PatientController patientController = new PatientController(patientRepo);
+        SymptomEntryController symptomController = new SymptomEntryController(symptomRepo);
+        DoctorController doctorController = new DoctorController(doctorRepo);
+        AppointmentController appointmentController = new AppointmentController(appointmentRepo);
+        MedicalRecordController medicalRecordController = new MedicalRecordController(medicalRecordRepo);
 
-    public void start() {
-        while (true) {
-            mainMenu();
-            try {
-                int option = scanner.nextInt();
+        // --- регистрируем пациентов и сохраняем объекты сразу ---
+        Patient alice = patientController.registerReturn("Alice", 28, "female");
+        Patient bob = patientController.registerReturn("Bob", 35, "male");
 
-                switch (option) {
-                    case 1: getAllUsersMenu(); break;
-                    case 2: getUserByIdMenu(); break;
-                    case 3: createUserMenu(); break;
-                    default: return;
-                }
-            } catch (InputMismatchException e) {
-                System.out.println("Input must be integer: " + e);
-                scanner.nextLine(); // to ignore incorrect input
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
+        // --- добавляем врачей ---
+        doctorController.addDoctor("Dr. Smith", "Cardiology");
+        doctorController.addDoctor("Dr. Johnson", "Neurology");
 
-            System.out.println("*************************");
+        // --- добавляем симптомы ---
+        symptomController.add(alice.getId(), "headache");
+        symptomController.add(alice.getId(), "fever");
+        symptomController.add(bob.getId(), "cough");
+
+        // --- создаем приёмы ---
+        appointmentController.make(alice.getId(), 1);
+        appointmentController.make(bob.getId(), 2);
+
+        // --- выводим медицинские записи ---
+        System.out.println("\nMedical records for Alice:");
+        medicalRecordController.show(alice.getId());
+
+        System.out.println("\nMedical records for Bob:");
+        medicalRecordController.show(bob.getId());
+
+        // --- выводим всех пациентов ---
+        System.out.println("\nAll patients:");
+        for (Patient p : patientRepo.getAllPatients()) {
+            System.out.println(p);
         }
-    }
 
-    public void getAllUsersMenu() {
-        String response = controller.getAllUsers();
-        System.out.println(response);
-    }
+        // --- выводим всех врачей ---
+        System.out.println("\nAll doctors:");
+        doctorRepo.getAllDoctors().forEach(System.out::println);
 
-    public void getUserByIdMenu() {
-        System.out.println("Please enter id");
-
-        int id = scanner.nextInt();
-
-        String response = controller.getUser(id);
-        System.out.println(response);
-    }
-
-    public void createUserMenu() {
-        System.out.println("Please enter name");
-        String name = scanner.next();
-        System.out.println("Please enter surname");
-        String surname = scanner.next();
-        System.out.println("Please enter gender (male/female)");
-        String gender = scanner.next();
-
-        String response = controller.createUser(name, surname, gender);
-        System.out.println(response);
+        System.out.println("\n--- application started successfully ---");
     }
 }

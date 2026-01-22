@@ -8,16 +8,24 @@ public class SymptomEntry {
     private String symptom;
     private LocalDate entryDate;
 
+    // конструктор с patientId, симптом и дата
     public SymptomEntry(int patientId, String symptom, LocalDate entryDate) {
         this.patientId = patientId;
         this.symptom = symptom;
         this.entryDate = entryDate;
     }
 
+    // конструктор с patientId и симптом (дата = сегодня)
     public SymptomEntry(int patientId, String symptom) {
         this.patientId = patientId;
         this.symptom = symptom;
         this.entryDate = LocalDate.now();
+    }
+
+    // **новый конструктор с описанием и датой**, чтобы работал код из репозитория
+    public SymptomEntry(String symptom, LocalDate entryDate) {
+        this.symptom = symptom;
+        this.entryDate = entryDate;
     }
 
     public int getId() { return id; }
