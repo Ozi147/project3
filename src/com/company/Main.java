@@ -1,16 +1,13 @@
 package com.company;
 
+import com.company.data.PostgresDB;
 import java.sql.*;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
 
-        String url = "jdbc:postgresql://localhost:5432/health_db";
-        String user = "postgres";
-        String password = "0000";
-
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = PostgresDB.getConnection();
              Scanner sc = new Scanner(System.in)) {
 
             System.out.println("Connected to PostgreSQL successfully.\n");
@@ -36,7 +33,6 @@ public class Main {
 
                 int patientId = 0;
 
-                // insert patient
                 String insertPatient =
                         "INSERT INTO patients (name, age, gender) VALUES (?, ?, ?) RETURNING id";
                 try (PreparedStatement ps = conn.prepareStatement(insertPatient)) {
@@ -47,7 +43,6 @@ public class Main {
                     if (rs.next()) patientId = rs.getInt("id");
                 }
 
-                // insert symptom entry
                 String insertSymptom =
                         "INSERT INTO symptom_entries (patient_id, symptom, entry_date) VALUES (?, ?, CURRENT_DATE)";
                 try (PreparedStatement ps = conn.prepareStatement(insertSymptom)) {
@@ -56,7 +51,6 @@ public class Main {
                     ps.executeUpdate();
                 }
 
-                // get specialization by symptom (default = general)
                 String specialization = "general";
                 String getSpec =
                         "SELECT specialization FROM symptom_doctor WHERE symptom = ?";
@@ -68,7 +62,6 @@ public class Main {
                     }
                 }
 
-                // get doctor
                 int doctorId = 0;
                 String doctorName = "";
 
@@ -88,18 +81,16 @@ public class Main {
                     return;
                 }
 
-                // create appointment (WITH symptom + date)
                 String insertAppointment =
                         "INSERT INTO appointments (patient_id, doctor_id, appointment_date, notes) " +
                                 "VALUES (?, ?, CURRENT_DATE, ?)";
                 try (PreparedStatement ps = conn.prepareStatement(insertAppointment)) {
                     ps.setInt(1, patientId);
                     ps.setInt(2, doctorId);
-                    ps.setString(3, symptom); // сразу кладем симптом
+                    ps.setString(3, symptom);
                     ps.executeUpdate();
                 }
 
-                // create medical record
                 String insertMedicalRecord =
                         "INSERT INTO medical_records " +
                                 "(patient_id, doctor_id, appointment_id, symptoms, record_date) " +
@@ -119,7 +110,6 @@ public class Main {
                 System.out.println("Specialization: " + specialization);
             }
 
-            // ===== VIEW MEDICAL RECORD =====
             System.out.println("\nDo you want to view your medical record? (yes/no):");
             String viewAnswer = sc.nextLine().trim().toLowerCase();
 

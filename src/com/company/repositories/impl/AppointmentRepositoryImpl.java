@@ -22,6 +22,7 @@ public class AppointmentRepositoryImpl implements IAppointmentRepository {
     public boolean addAppointment(Appointment appointment) {
         String sql = "INSERT INTO appointments(patient_id, doctor_id, visit_date) VALUES (?, ?, ?)";
 
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, appointment.patientId);
             ps.setInt(2, appointment.doctorId);

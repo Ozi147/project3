@@ -6,22 +6,11 @@ import java.sql.SQLException;
 
 public class PostgresDB {
 
-    private Connection connection;
+    private static final String URL = "jdbc:postgresql://localhost:5432/health_db";
+    private static final String USER = "postgres";
+    private static final String PASSWORD = "0000";
 
-    public PostgresDB() {
-        try {
-            connection = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5432/health_db",
-                    "postgres",
-                    "0000"
-            );
-            System.out.println("connected to postgresql");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public Connection getConnection() {
-        return connection;
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }
