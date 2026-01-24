@@ -11,7 +11,7 @@ public class PostgresDB {
     public PostgresDB() {
         try {
             connection = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5432/hospital_db",
+                    "jdbc:postgresql://localhost:5432/health_db",
                     "postgres",
                     "0000"
             );
