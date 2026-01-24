@@ -15,7 +15,7 @@ public class Main {
 
             System.out.println("Connected to PostgreSQL successfully.\n");
 
-            // ===== ADD NEW PATIENT =====
+            // NEW PATIENT
             System.out.println("Do you want to add a new patient? (yes/no):");
             String answer = sc.nextLine().trim().toLowerCase();
 
@@ -99,7 +99,7 @@ public class Main {
                     ps.executeUpdate();
                 }
 
-                // create medical record (связь с appointment, берем symptom)
+                // create medical record
                 String insertMedicalRecord =
                         "INSERT INTO medical_records " +
                                 "(patient_id, doctor_id, appointment_id, symptoms, record_date) " +
