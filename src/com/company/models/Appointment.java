@@ -2,6 +2,7 @@ package com.company.models;
 
 import java.time.LocalDate;
 
+
 public class Appointment {
     public int patientId;
     public int doctorId;
