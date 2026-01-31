@@ -15,7 +15,7 @@ public class PatientRepositoryImpl implements IPatientRepository {
         this.connection = connection;
     }
 
-    // метод добавления пациента
+    // добавления пациента
     @Override
     public boolean addPatient(Patient patient) {
         String sql = "INSERT INTO patients(name, age, gender) VALUES (?, ?, ?)";
@@ -25,7 +25,6 @@ public class PatientRepositoryImpl implements IPatientRepository {
             ps.setString(3, patient.getGender());
             int affectedRows = ps.executeUpdate();
 
-            // получить автоматически сгенерированный id из базы и записать в объект
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
@@ -42,7 +41,7 @@ public class PatientRepositoryImpl implements IPatientRepository {
         }
     }
 
-    // метод получения пациента по id
+    // получить пациента по id
     @Override
     public Patient getPatientById(int id) {
         String sql = "SELECT * FROM patients WHERE id = ?";
@@ -64,7 +63,7 @@ public class PatientRepositoryImpl implements IPatientRepository {
         return null;
     }
 
-    // метод получения всех пациентов
+    // получения всех пациентов
     @Override
     public List<Patient> getAllPatients() {
         List<Patient> patients = new ArrayList<>();
