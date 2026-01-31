@@ -12,14 +12,12 @@ public class PatientController {
         this.repo = repo;
     }
 
-    // старый метод: просто регистрирует без возврата
     public void register(String name, int age, String gender) {
         Patient patient = new Patient(nextId++, name, age, gender);
         repo.addPatient(patient);
         System.out.println("Patient registered: " + patient.getName());
     }
 
-    // новый метод: регистрирует и возвращает объект Patient
     public Patient registerReturn(String name, int age, String gender) {
         Patient patient = new Patient(nextId++, name, age, gender);
         repo.addPatient(patient);

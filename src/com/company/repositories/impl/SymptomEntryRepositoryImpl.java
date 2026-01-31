@@ -26,7 +26,7 @@ public class SymptomEntryRepositoryImpl implements ISymptomEntryRepository {
             ps.setDate(3, Date.valueOf(entry.getEntryDate()));
             int affectedRows = ps.executeUpdate();
 
-            // получить автоматически сгенерированный id и записать в объект
+            // сгенерированный id и запись в объект
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
@@ -43,7 +43,7 @@ public class SymptomEntryRepositoryImpl implements ISymptomEntryRepository {
         }
     }
 
-    // получить все симптомы конкретного пациента
+    // все симптомы конкретного пациента
     @Override
     public List<SymptomEntry> getSymptomsByPatientId(int patientId) {
         List<SymptomEntry> symptoms = new ArrayList<>();

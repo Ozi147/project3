@@ -10,7 +10,14 @@ public class PostgresDB {
     private static final String USER = "postgres";
     private static final String PASSWORD = "0000";
 
+    private static Connection connection;
+
+    private PostgresDB() {}
+
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        if (connection == null || connection.isClosed()) {
+            connection = DriverManager.getConnection(URL, USER, PASSWORD);
+        }
+        return connection;
     }
 }
