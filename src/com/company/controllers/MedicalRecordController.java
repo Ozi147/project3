@@ -9,26 +9,17 @@ public class MedicalRecordController {
 
     private final IMedicalRecordRepository repo;
 
-    public MedicalRecordController(IMedicalRecordRepository repo) {
+    public MedicalRecordController(IMedicalRecordRepository repo){
         this.repo = repo;
     }
 
-    // теперь show принимает имя пациента
-    public void show(String patientName) {
-        List<MedicalRecord> records = repo.getMedicalRecordsByPatientName(patientName);
+    public List<MedicalRecord> getByPatientName(String name){
+        List<MedicalRecord> records = repo.getMedicalRecordsByPatientName(name);
+        if(records.isEmpty()) throw new RuntimeException("no records found for patient: " + name);
+        return records;
+    }
 
-        if (records.isEmpty()) {
-            System.out.println("No medical records found for " + patientName);
-            return;
-        }
-
-        System.out.println("Medical history for " + patientName + ":");
-        records.forEach(rec -> System.out.println(
-                "Patient: " + rec.getPatientName()
-                        + " | Symptom: " + rec.getSymptom()
-                        + " | Appointment Date: " + rec.getAppointmentDate()
-                        + " | Doctor: " + rec.getDoctorName()
-                        + " | Specialization: " + rec.getSpecialization()
-        ));
+    public List<MedicalRecord> getByDoctorId(int doctorId){
+        return repo.getMedicalRecordsByDoctorId(doctorId);
     }
 }
