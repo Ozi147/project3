@@ -1,45 +1,55 @@
-package com.company.repositories.impl;
+package com.company;
 
-import com.company.repositories.IDoctorAccountRepository;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Scanner;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+public final class InputValidator {
+    private InputValidator() {}
 
-public class DoctorAccountRepositoryImpl implements IDoctorAccountRepository {
-
-    private final Connection connection;
-
-    public DoctorAccountRepositoryImpl(Connection connection) {
-        this.connection = connection;
-    }
-
-    @Override
-    public boolean createAccount(int doctorId, String username, String passwordHash) {
-        String sql = "INSERT INTO doctor_accounts(doctor_id, username, password_hash) VALUES (?, ?, ?)";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, doctorId);
-            ps.setString(2, username);
-            ps.setString(3, passwordHash);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+    public static String readRealName(Scanner sc) {
+        while (true) {
+            String name = sc.nextLine().trim();
+            if (name.matches("^[A-Za-z]+(?:[ -][A-Za-z]+)*$")) return name;
+            System.out.println("Invalid name. Use English letters only (example: John Smith). Try again:");
         }
     }
 
-    @Override
-    public Integer findDoctorIdByCredentials(String username, String passwordHash) {
-        String sql = "SELECT doctor_id FROM doctor_accounts WHERE username = ? AND password_hash = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, username);
-            ps.setString(2, passwordHash);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt("doctor_id");
+    public static int readAge(Scanner sc) {
+        while (true) {
+            String s = sc.nextLine().trim();
+            if (s.matches("^\\d+$")) {
+                int age = Integer.parseInt(s);
+                if (age >= 1 && age <= 120) return age;
             }
-            return null;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.out.println("Invalid age. Digits only (1-120). Try again:");
+        }
+    }
+
+    public static String readUsername(Scanner sc) {
+        while (true) {
+            String username = sc.nextLine().trim();
+            if (username.matches("^[A-Za-z0-9_]{3,20}$")) return username;
+            System.out.println("Invalid username. Use 3-20 chars: letters, digits, underscore. Try again:");
+        }
+    }
+
+    public static String readPassword(Scanner sc) {
+        while (true) {
+            String password = sc.nextLine();
+            if (password != null && password.length() >= 4) return password;
+            System.out.println("Password is too short. Minimum 4 characters. Try again:");
+        }
+    }
+
+    public static LocalDate readDate(Scanner sc) {
+        while (true) {
+            String s = sc.nextLine().trim();
+            try {
+                return LocalDate.parse(s); // format: yyyy-MM-dd
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid date. Use format yyyy-MM-dd (example: 2026-02-07). Try again:");
+            }
         }
     }
 }
