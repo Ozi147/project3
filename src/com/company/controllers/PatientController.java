@@ -15,11 +15,15 @@ public class PatientController {
 
     // регистрация нового пациента
     public Patient register(String name, int age, String gender) {
-        if(name == null || name.isBlank()) throw new RuntimeException("invalid name");
-        if(age <= 0) throw new RuntimeException("invalid age");
-        Patient patient = new Patient(name, age, gender);
+        if (name == null || name.isBlank()) throw new RuntimeException("Invalid name");
+        if (!name.matches("^[A-Za-z]+(?:[ -][A-Za-z]+)*$")) {
+            throw new RuntimeException("Invalid name: use English letters only");
+        }
+        if (age <= 0) throw new RuntimeException("Invalid age");
+
+        Patient patient = new Patient(name.trim(), age, gender);
         boolean success = repo.addPatient(patient);
-        if(!success) throw new RuntimeException("failed to register patient");
+        if(!success) throw new RuntimeException("Failed to register patient");
         System.out.println("Patient registered: " + patient.getName());
         return patient;
     }
@@ -27,6 +31,6 @@ public class PatientController {
     // получить пациента по id
     public Patient getById(int id){
         return Optional.ofNullable(repo.getPatientById(id))
-                .orElseThrow(() -> new RuntimeException("patient not found"));
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
     }
-}      
+}
