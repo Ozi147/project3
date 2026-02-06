@@ -6,4 +6,5 @@ import java.util.List;
 public interface IAppointmentRepository {
     boolean addAppointment(Appointment appointment);
     List<Appointment> getAppointmentsByPatientId(int patientId);
+    List<Appointment> getAppointmentsByDoctorId(int doctorId);
 }
