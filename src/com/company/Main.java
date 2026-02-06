@@ -66,7 +66,7 @@ public class Main {
                     String gender = sc.nextLine().trim();
 
                     Patient patient = patientCtrl.register(name, age, gender);
-                    accountRepo.createAccount(patient.getId(), username, PasswordHasher.sha256(password));
+                    accountRepo.createAccount(patient.getId(), username, Password.sha256(password));
 
                     System.out.println("You have registered successfully.");
                     System.out.println("Your patient id is: " + patient.getId());
@@ -79,7 +79,7 @@ public class Main {
                     System.out.println("Please enter your password:");
                     String password = sc.nextLine();
 
-                    Integer patientId = accountRepo.findPatientIdByCredentials(username, PasswordHasher.sha256(password));
+                    Integer patientId = accountRepo.findPatientIdByCredentials(username, Password.sha256(password));
                     if (patientId == null) {
                         System.out.println("Invalid username or password.");
                         return;
