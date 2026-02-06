@@ -29,4 +29,8 @@ public class AppointmentController {
     public List<Appointment> getAppointmentsByDoctor(int doctorId){
         return repo.getAppointmentsByDoctorId(doctorId);
     }
+
+    public boolean closeAppointment(int doctorId, int patientId, LocalDate date) {
+        return repo.closeAppointment(doctorId, patientId, date);
+    }
 }
