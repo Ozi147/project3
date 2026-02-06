@@ -1,34 +1,27 @@
 package com.company.controllers;
 
-import com.company.models.MedicalRecord;
-import com.company.repositories.IMedicalRecordRepository;
+import com.company.models.SymptomEntry;
+import com.company.repositories.ISymptomEntryRepository;
 
 import java.util.List;
 
-public class MedicalRecordController {
+public class SymptomEntryController {
 
-    private final IMedicalRecordRepository repo;
+    private final ISymptomEntryRepository repo;
 
-    public MedicalRecordController(IMedicalRecordRepository repo) {
+    public SymptomEntryController(ISymptomEntryRepository repo){
         this.repo = repo;
     }
 
-    // теперь show принимает имя пациента
-    public void show(String patientName) {
-        List<MedicalRecord> records = repo.getMedicalRecordsByPatientName(patientName);
+    public SymptomEntry addSymptom(int patientId, String symptom){
+        if(symptom == null || symptom.isBlank()) throw new RuntimeException("invalid symptom");
+        SymptomEntry entry = new SymptomEntry(patientId, symptom);
+        boolean success = repo.addSymptomEntry(entry);
+        if(!success) throw new RuntimeException("failed to add symptom");
+        return entry;
+    }
 
-        if (records.isEmpty()) {
-            System.out.println("No medical records found for " + patientName);
-            return;
-        }
-
-        System.out.println("Medical history for " + patientName + ":");
-        records.forEach(rec -> System.out.println(
-                "Patient: " + rec.getPatientName()
-                        + " | Symptom: " + rec.getSymptom()
-                        + " | Appointment Date: " + rec.getAppointmentDate()
-                        + " | Doctor: " + rec.getDoctorName()
-                        + " | Specialization: " + rec.getSpecialization()
-        ));
+    public List<SymptomEntry> getSymptomsByPatient(int patientId){
+        return repo.getSymptomsByPatientId(patientId);
     }
 }
