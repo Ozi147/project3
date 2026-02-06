@@ -20,10 +20,8 @@ public class MedicalRecord {
         this.specialization = specialization;
     }
 
-    public int getPatientId() { return patientId; }
-    public String getPatientName() { return patientName; }
-    public String getSymptom() { return symptom; }
-    public LocalDate getAppointmentDate() { return appointmentDate; }
-    public String getDoctorName() { return doctorName; }
-    public String getSpecialization() { return specialization; }
+    @Override
+    public String toString() {
+        return patientName + " | " + symptom + " | " + appointmentDate + " | " + doctorName + " | " + specialization;
+    }
 }

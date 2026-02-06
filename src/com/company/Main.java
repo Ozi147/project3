@@ -1,85 +1,106 @@
 package com.company;
 
+import com.company.controllers.*;
 import com.company.data.PostgresDB;
+import com.company.models.Patient;
 import com.company.repositories.impl.*;
-import com.company.services.MedicalService;
 
 import java.sql.Connection;
-import java.sql.SQLException;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) {
 
-        try (Connection conn = PostgresDB.getConnection();
-             Scanner sc = new Scanner(System.in)) {
+    public static void main(String[] args) throws Exception {
+        try(Connection conn = PostgresDB.getConnection();
+            Scanner sc = new Scanner(System.in)) {
 
-            System.out.println("Connected to PostgreSQL successfully.\n");
+            System.out.println("connected to database");
 
-            // create repository
+            // репозитории
             var patientRepo = new PatientRepositoryImpl(conn);
-            var symptomRepo = new SymptomEntryRepositoryImpl(conn);
             var doctorRepo = new DoctorRepositoryImpl(conn);
             var appointmentRepo = new AppointmentRepositoryImpl(conn);
-            var medicalRecordRepo = new MedicalRecordRepositoryImpl(conn);
+            var symptomRepo = new SymptomEntryRepositoryImpl(conn);
             var symptomDoctorRepo = new SymptomDoctorRepositoryImpl(conn);
+            var medicalRecordRepo = new MedicalRecordRepositoryImpl(conn);
 
-            // создаем сервис и передаем все репозитории
-            var medicalService = new MedicalService(
-                    patientRepo,
-                    symptomRepo,
-                    doctorRepo,
-                    appointmentRepo,
-                    medicalRecordRepo,
-                    symptomDoctorRepo
-            );
+            // контроллеры
+            var patientCtrl = new PatientController(patientRepo);
+            var doctorCtrl = new DoctorController(doctorRepo);
+            var appointmentCtrl = new AppointmentController(appointmentRepo);
+            var symptomCtrl = new SymptomEntryController(symptomRepo);
+            var medicalCtrl = new MedicalRecordController(medicalRecordRepo);
 
-            System.out.println("Do you want to add a new patient? (yes/no):");
-            String answer = sc.nextLine().trim().toLowerCase();
+            System.out.println("enter your role (guest / patient / doctor / receptionist / admin):");
+            String role = sc.nextLine().trim().toLowerCase();
 
-            if (answer.equals("yes")) {
+            switch(role){
+                case "guest" -> {
+                    System.out.println("guest: you can register or see basic info");
+                    System.out.println("do you want to register? (yes/no)");
+                    if(sc.nextLine().equalsIgnoreCase("yes")){
+                        System.out.println("name:");
+                        String name = sc.nextLine();
+                        System.out.println("age:");
+                        int age = Integer.parseInt(sc.nextLine());
+                        System.out.println("gender:");
+                        String gender = sc.nextLine();
+                        patientCtrl.register(name, age, gender);
+                    }
+                }
+                case "patient" -> {
+                    System.out.println("enter patient name:");
+                    String name = sc.nextLine();
+                    List<MedicalRecord> records = medicalCtrl.getByPatientName(name);
+                    System.out.println("your medical records:");
+                    records.forEach(r -> System.out.println(
+                            r.getPatientName() + " | " + r.getSymptom() + " | " +
+                                    r.getAppointmentDate() + " | " + r.getDoctorName() + " | " +
+                                    r.getSpecialization()
+                    ));
+                }
+                case "doctor" -> {
+                    System.out.println("enter your doctor id:");
+                    int docId = Integer.parseInt(sc.nextLine());
+                    List<MedicalRecord> patients = medicalCtrl.getByDoctorId(docId);
+                    System.out.println("your patients:");
+                    patients.forEach(r -> System.out.println(
+                            r.getPatientName() + " | " + r.getSymptom() + " | " +
+                                    r.getAppointmentDate()
+                    ));
+                }
+                case "receptionist" -> {
+                    System.out.println("register new patient:");
+                    System.out.println("name:");
+                    String name = sc.nextLine();
+                    System.out.println("age:");
+                    int age = Integer.parseInt(sc.nextLine());
+                    System.out.println("gender:");
+                    String gender = sc.nextLine();
+                    Patient patient = patientCtrl.register(name, age, gender);
 
-                System.out.println("Enter patient name:");
-                String name = sc.nextLine();
+                    System.out.println("enter symptom for patient:");
+                    String symptom = sc.nextLine();
+                    symptomCtrl.addSymptom(patient.getId(), symptom);
 
-                System.out.println("Enter age:");
-                int age = sc.nextInt();
-                sc.nextLine();
-                System.out.println("Enter gender:");
-                String gender = sc.nextLine();
+                    String specialization = symptomDoctorRepo.getSpecializationBySymptom(symptom);
+                    var doctors = doctorCtrl.getDoctorsBySpecialization(specialization);
+                    if(doctors.isEmpty()) throw new RuntimeException("no doctors for specialization");
 
-                System.out.println("Enter symptom:");
-                String symptom = sc.nextLine();
-
-                // вызыв сервисного flow
-                medicalService.createAppointmentFlow(name, age, gender, symptom);
+                    var appointment = appointmentCtrl.createAppointment(patient.getId(), doctors.get(0).getId());
+                    System.out.println("appointment created for " + patient.getName());
+                }
+                case "admin" -> {
+                    System.out.println("admin: you can add doctors, manage specializations");
+                    System.out.println("add doctor name:");
+                    String dName = sc.nextLine();
+                    System.out.println("specialization:");
+                    String spec = sc.nextLine();
+                    doctorCtrl.addDoctor(dName, spec);
+                }
+                default -> System.out.println("invalid role");
             }
-
-            System.out.println("\ndo you want to view your medical record? (yes/no):");
-            if (!sc.nextLine().trim().equalsIgnoreCase("yes")) return;
-
-            System.out.println("Enter patient name:");
-            String name = sc.nextLine();
-
-            var records = medicalRecordRepo.getMedicalRecordsByPatientName(name);
-
-            if (records.isEmpty()) {
-                System.out.println("No medical records found for " + name);
-                return;
-            }
-
-            System.out.println("\nMedical records for " + name + ":");
-            records.forEach(rec -> System.out.println(
-                    "Patient: " + rec.getPatientName()
-                            + " | Symptom: " + rec.getSymptom()
-                            + " | Appointment Date: " + rec.getAppointmentDate()
-                            + " | Doctor: " + rec.getDoctorName()
-                            + " | Specialization: " + rec.getSpecialization()
-            ));
-
-
-        } catch (SQLException e) {
-            System.out.println("Database error: " + e.getMessage());
         }
     }
 }
