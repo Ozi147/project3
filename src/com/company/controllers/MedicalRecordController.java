@@ -1,27 +1,25 @@
 package com.company.controllers;
 
-import com.company.models.SymptomEntry;
-import com.company.repositories.ISymptomEntryRepository;
+import com.company.models.MedicalRecord;
+import com.company.repositories.IMedicalRecordRepository;
 
 import java.util.List;
 
-public class SymptomEntryController {
+public class MedicalRecordController {
 
-    private final ISymptomEntryRepository repo;
+    private final IMedicalRecordRepository repo;
 
-    public SymptomEntryController(ISymptomEntryRepository repo){
+    public MedicalRecordController(IMedicalRecordRepository repo){
         this.repo = repo;
     }
 
-    public SymptomEntry addSymptom(int patientId, String symptom){
-        if(symptom == null || symptom.isBlank()) throw new RuntimeException("invalid symptom");
-        SymptomEntry entry = new SymptomEntry(patientId, symptom);
-        boolean success = repo.addSymptomEntry(entry);
-        if(!success) throw new RuntimeException("failed to add symptom");
-        return entry;
+    public List<MedicalRecord> getByPatientName(String name){
+        List<MedicalRecord> records = repo.getMedicalRecordsByPatientName(name);
+        if(records.isEmpty()) throw new RuntimeException("no records found for patient: " + name);
+        return records;
     }
 
-    public List<SymptomEntry> getSymptomsByPatient(int patientId){
-        return repo.getSymptomsByPatientId(patientId);
+    public List<MedicalRecord> getByDoctorId(int doctorId){
+        return repo.getMedicalRecordsByDoctorId(doctorId);
     }
 }

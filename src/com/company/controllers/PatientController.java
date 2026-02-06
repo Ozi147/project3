@@ -29,4 +29,4 @@ public class PatientController {
         return Optional.ofNullable(repo.getPatientById(id))
                 .orElseThrow(() -> new RuntimeException("patient not found"));
     }
-}
+}      
