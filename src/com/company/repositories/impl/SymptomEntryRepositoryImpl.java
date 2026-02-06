@@ -1,4 +1,4 @@
-ppackage com.company.repositories.impl;
+package com.company.repositories.impl;
 
 import com.company.models.SymptomEntry;
 import com.company.repositories.ISymptomEntryRepository;
