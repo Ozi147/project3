@@ -3,6 +3,7 @@ package com.company.models;
 import java.time.LocalDate;
 
 public class MedicalRecord {
+
     private int patientId;
     private String patientName;
     private String symptom;
@@ -10,8 +11,12 @@ public class MedicalRecord {
     private String doctorName;
     private String specialization;
 
-    public MedicalRecord(int patientId, String patientName, String symptom,
-                         LocalDate appointmentDate, String doctorName, String specialization) {
+    public MedicalRecord(int patientId,
+                         String patientName,
+                         String symptom,
+                         LocalDate appointmentDate,
+                         String doctorName,
+                         String specialization) {
         this.patientId = patientId;
         this.patientName = patientName;
         this.symptom = symptom;
@@ -20,8 +25,27 @@ public class MedicalRecord {
         this.specialization = specialization;
     }
 
-    @Override
-    public String toString() {
-        return patientName + " | " + symptom + " | " + appointmentDate + " | " + doctorName + " | " + specialization;
+    public int getPatientId() {
+        return patientId;
+    }
+
+    public String getPatientName() {
+        return patientName;
+    }
+
+    public String getSymptom() {
+        return symptom;
+    }
+
+    public LocalDate getAppointmentDate() {
+        return appointmentDate;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public String getSpecialization() {
+        return specialization;
     }
 }

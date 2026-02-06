@@ -3,6 +3,7 @@ package com.company;
 import com.company.controllers.*;
 import com.company.data.PostgresDB;
 import com.company.models.Patient;
+import com.company.models.MedicalRecord;
 import com.company.repositories.impl.*;
 
 import java.sql.Connection;
