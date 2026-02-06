@@ -34,3 +34,4 @@ public class PatientController {
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
     }
 }
+}
