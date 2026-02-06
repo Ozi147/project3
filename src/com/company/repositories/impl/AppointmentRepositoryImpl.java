@@ -4,6 +4,7 @@ import com.company.models.Appointment;
 import com.company.repositories.IAppointmentRepository;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,5 +62,25 @@ public class AppointmentRepositoryImpl implements IAppointmentRepository {
             }
         } catch(SQLException e){ throw new RuntimeException(e);}
         return list;
+    }
+
+    @Override
+    public boolean closeAppointment(int doctorId, int patientId, LocalDate date) {
+        String sql = """
+                UPDATE appointments
+                SET is_closed = TRUE
+                WHERE doctor_id = ?
+                  AND patient_id = ?
+                  AND appointment_date = ?
+                  AND is_closed = FALSE
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, doctorId);
+            ps.setInt(2, patientId);
+            ps.setDate(3, Date.valueOf(date));
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
