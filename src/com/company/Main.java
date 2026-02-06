@@ -7,14 +7,15 @@ import com.company.models.MedicalRecord;
 import com.company.repositories.impl.*;
 
 import java.sql.Connection;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        try (Connection conn = PostgresDB.getConnection();
-             Scanner sc = new Scanner(System.in)) {
+        try(Connection conn = PostgresDB.getConnection();
+            Scanner sc = new Scanner(System.in)) {
 
             System.out.println("Connected to database");
 
@@ -26,8 +27,8 @@ public class Main {
             var symptomDoctorRepo = new SymptomDoctorRepositoryImpl(conn);
             var medicalRecordRepo = new MedicalRecordRepositoryImpl(conn);
 
-            // NEW: accounts repo
             var accountRepo = new PatientAccountRepositoryImpl(conn);
+            var doctorAccountRepo = new DoctorAccountRepositoryImpl(conn);
 
             // controllers
             var patientCtrl = new PatientController(patientRepo);
@@ -39,129 +40,76 @@ public class Main {
             System.out.println("Enter your role (guest / patient / doctor / receptionist / admin):");
             String role = sc.nextLine().trim().toLowerCase();
 
-            switch (role) {
-                case "guest" -> {
-                    System.out.println("You are a guest. You need to register to continue.");
-                    System.out.println("Continue to registration? (yes/no)");
-                    String answer = sc.nextLine().trim();
+            switch(role){
 
-                    if (!answer.equalsIgnoreCase("yes")) {
-                        System.out.println("Goodbye.");
-                        return;
-                    }
+                // ... existing code ...
 
-                    System.out.println("Create a username:");
-                    String username = InputValidator.readUsername(sc);
-
-                    System.out.println("Create a password:");
-                    String password = InputValidator.readPassword(sc);
-
-                    System.out.println("Enter your name (English letters only):");
-                    String name = InputValidator.readRealName(sc);
-
-                    System.out.println("Enter your age (digits only):");
-                    int age = InputValidator.readAge(sc);
-
-                    System.out.println("Enter your gender:");
-                    String gender = sc.nextLine().trim();
-
-                    Patient patient = patientCtrl.register(name, age, gender);
-                    accountRepo.createAccount(patient.getId(), username, Password.sha256(password));
-
-                    System.out.println("You have registered successfully.");
-                    System.out.println("Your patient id is: " + patient.getId());
-                }
-
-                case "patient" -> {
+                case "doctor" -> {
                     System.out.println("Please enter your username:");
                     String username = sc.nextLine().trim();
 
                     System.out.println("Please enter your password:");
                     String password = sc.nextLine();
 
-                    Integer patientId = accountRepo.findPatientIdByCredentials(username, Password.sha256(password));
-                    if (patientId == null) {
+                    Integer doctorId = doctorAccountRepo.findDoctorIdByCredentials(username, Password.sha256(password));
+                    if (doctorId == null) {
                         System.out.println("Invalid username or password.");
                         return;
                     }
 
                     System.out.println("You have successfully logged in.");
 
-                    Patient patient = patientCtrl.getById(patientId);
-
-                    System.out.println("Do you want to create an appointment request (leave a symptom)? (yes/no)");
+                    System.out.println("Do you want to view patients for a specific day? (yes/no)");
                     String want = sc.nextLine().trim();
+
+                    LocalDate day = null;
                     if (want.equalsIgnoreCase("yes")) {
-                        System.out.println("Enter your symptom:");
-                        String symptom = sc.nextLine().trim();
-                        symptomCtrl.addSymptom(patient.getId(), symptom);
+                        System.out.println("Enter date (yyyy-MM-dd):");
+                        day = InputValidator.readDate(sc);
 
-                        String specialization = symptomDoctorRepo.getSpecializationBySymptom(symptom);
-                        var doctors = doctorCtrl.getDoctorsBySpecialization(specialization);
-                        if (doctors.isEmpty()) throw new RuntimeException("No doctors found for specialization: " + specialization);
-
-                        appointmentCtrl.createAppointment(patient.getId(), doctors.get(0).getId());
-                        System.out.println("Your request was saved and an appointment was created.");
+                        List<MedicalRecord> list = medicalCtrl.getByDoctorIdAndDate(doctorId, day);
+                        if (list.isEmpty()) {
+                            System.out.println("No open appointments for this day.");
+                        } else {
+                            System.out.println("Patients for " + day + ":");
+                            list.forEach(r -> System.out.println(
+                                    "PatientId=" + r.getPatientId() + " | " +
+                                            r.getPatientName() + " | Symptom: " + r.getSymptom() + " | " +
+                                            "Doctor: " + r.getDoctorName() + " | " +
+                                            "Spec: " + r.getSpecialization() + " | " +
+                                            "Date: " + r.getAppointmentDate()
+                            ));
+                        }
                     }
 
-                    System.out.println("Do you want to view your medical card? (yes/no)");
-                    String view = sc.nextLine().trim();
-                    if (view.equalsIgnoreCase("yes")) {
-                        List<MedicalRecord> records = medicalCtrl.getByPatientName(patient.getName());
-                        System.out.println("Your medical records:");
-                        if (records.isEmpty()) {
-                            System.out.println("No records found yet.");
+                    System.out.println("Do you want to close an appointment? (yes/no)");
+                    String close = sc.nextLine().trim();
+                    if (close.equalsIgnoreCase("yes")) {
+                        System.out.println("Enter patient id:");
+                        int patientId = Integer.parseInt(sc.nextLine().trim());
+
+                        System.out.println("Enter patient name (English letters only):");
+                        String patientName = InputValidator.readRealName(sc);
+
+                        System.out.println("Enter appointment date (yyyy-MM-dd):");
+                        LocalDate date = InputValidator.readDate(sc);
+
+                        Patient p = patientCtrl.getById(patientId);
+                        if (!p.getName().equalsIgnoreCase(patientName.trim())) {
+                            System.out.println("Patient id and patient name do not match.");
+                            return;
+                        }
+
+                        boolean closedOk = appointmentCtrl.closeAppointment(doctorId, patientId, date);
+                        if (closedOk) {
+                            System.out.println("Appointment closed.");
                         } else {
-                            records.forEach(r -> System.out.println(
-                                    r.getPatientName() + " | " + r.getSymptom() + " | " +
-                                            r.getAppointmentDate() + " | " + r.getDoctorName() + " | " +
-                                            r.getSpecialization()
-                            ));
+                            System.out.println("Could not close appointment (maybe not found or already closed).");
                         }
                     }
                 }
 
-                case "doctor" -> {
-                    System.out.println("Enter your doctor id:");
-                    int docId = Integer.parseInt(sc.nextLine());
-                    List<MedicalRecord> patients = medicalCtrl.getByDoctorId(docId);
-                    System.out.println("Your patients:");
-                    patients.forEach(r -> System.out.println(
-                            r.getPatientName() + " | " + r.getSymptom() + " | " +
-                                    r.getAppointmentDate()
-                    ));
-                }
-
-                case "receptionist" -> {
-                    System.out.println("Register new patient:");
-                    System.out.println("Name:");
-                    String name = sc.nextLine();
-                    System.out.println("Age:");
-                    int age = Integer.parseInt(sc.nextLine());
-                    System.out.println("Gender:");
-                    String gender = sc.nextLine();
-                    Patient patient = patientCtrl.register(name, age, gender);
-
-                    System.out.println("Enter symptom for patient:");
-                    String symptom = sc.nextLine();
-                    symptomCtrl.addSymptom(patient.getId(), symptom);
-
-                    String specialization = symptomDoctorRepo.getSpecializationBySymptom(symptom);
-                    var doctors = doctorCtrl.getDoctorsBySpecialization(specialization);
-                    if (doctors.isEmpty()) throw new RuntimeException("No doctors for specialization");
-
-                    appointmentCtrl.createAppointment(patient.getId(), doctors.get(0).getId());
-                    System.out.println("Appointment created for " + patient.getName());
-                }
-
-                case "admin" -> {
-                    System.out.println("Admin: you can add doctors, manage specializations");
-                    System.out.println("Add doctor name:");
-                    String dName = sc.nextLine();
-                    System.out.println("Specialization:");
-                    String spec = sc.nextLine();
-                    doctorCtrl.addDoctor(dName, spec);
-                }
+                // ... existing code ...
 
                 default -> System.out.println("Invalid role");
             }
