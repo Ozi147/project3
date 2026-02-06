@@ -3,6 +3,7 @@ package com.company.controllers;
 import com.company.models.MedicalRecord;
 import com.company.repositories.IMedicalRecordRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class MedicalRecordController {
@@ -14,12 +15,14 @@ public class MedicalRecordController {
     }
 
     public List<MedicalRecord> getByPatientName(String name){
-        List<MedicalRecord> records = repo.getMedicalRecordsByPatientName(name);
-        if(records.isEmpty()) throw new RuntimeException("no records found for patient: " + name);
-        return records;
+        return repo.getMedicalRecordsByPatientName(name);
     }
 
     public List<MedicalRecord> getByDoctorId(int doctorId){
         return repo.getMedicalRecordsByDoctorId(doctorId);
+    }
+
+    public List<MedicalRecord> getByDoctorIdAndDate(int doctorId, LocalDate date) {
+        return repo.getMedicalRecordsByDoctorIdAndDate(doctorId, date);
     }
 }
