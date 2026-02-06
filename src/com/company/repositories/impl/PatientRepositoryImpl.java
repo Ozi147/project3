@@ -15,7 +15,6 @@ public class PatientRepositoryImpl implements IPatientRepository {
         this.connection = connection;
     }
 
-    // добавления пациента
     @Override
     public boolean addPatient(Patient patient) {
         String sql = "INSERT INTO patients(name, age, gender) VALUES (?, ?, ?)";
@@ -24,67 +23,54 @@ public class PatientRepositoryImpl implements IPatientRepository {
             ps.setInt(2, patient.getAge());
             ps.setString(3, patient.getGender());
             int affectedRows = ps.executeUpdate();
-
-            if (affectedRows > 0) {
-                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        patient.setId(generatedKeys.getInt(1));
-                    }
+            if(affectedRows > 0){
+                try(ResultSet rs = ps.getGeneratedKeys()){
+                    if(rs.next()) patient.setId(rs.getInt(1));
                 }
             }
-
             return true;
-
         } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            throw new RuntimeException(e);
         }
     }
 
-    // получить пациента по id
     @Override
     public Patient getPatientById(int id) {
         String sql = "SELECT * FROM patients WHERE id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try(PreparedStatement ps = connection.prepareStatement(sql)){
             ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new Patient(
-                            rs.getInt("id"),
-                            rs.getString("name"),
-                            rs.getInt("age"),
-                            rs.getString("gender")
-                    );
+            try(ResultSet rs = ps.executeQuery()){
+                if(rs.next()){
+                    return new Patient(rs.getInt("id"), rs.getString("name"), rs.getInt("age"), rs.getString("gender"));
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch(SQLException e){ throw new RuntimeException(e); }
         return null;
     }
 
-    // получения всех пациентов
+    @Override
+    public Patient getPatientByName(String name){
+        String sql = "SELECT * FROM patients WHERE name = ?";
+        try(PreparedStatement ps = connection.prepareStatement(sql)){
+            ps.setString(1, name);
+            try(ResultSet rs = ps.executeQuery()){
+                if(rs.next()){
+                    return new Patient(rs.getInt("id"), rs.getString("name"), rs.getInt("age"), rs.getString("gender"));
+                }
+            }
+        } catch(SQLException e){ throw new RuntimeException(e);}
+        return null;
+    }
+
     @Override
     public List<Patient> getAllPatients() {
-        List<Patient> patients = new ArrayList<>();
+        List<Patient> list = new ArrayList<>();
         String sql = "SELECT * FROM patients";
-
-        try (Statement st = connection.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
-
-            while (rs.next()) {
-                patients.add(new Patient(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getInt("age"),
-                        rs.getString("gender")
-                ));
+        try(Statement st = connection.createStatement(); ResultSet rs = st.executeQuery(sql)){
+            while(rs.next()){
+                list.add(new Patient(rs.getInt("id"), rs.getString("name"), rs.getInt("age"), rs.getString("gender")));
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return patients;
+        } catch(SQLException e){ throw new RuntimeException(e);}
+        return list;
     }
 }
