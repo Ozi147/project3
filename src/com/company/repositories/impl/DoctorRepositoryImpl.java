@@ -17,25 +17,33 @@ public class DoctorRepositoryImpl implements IDoctorRepository {
     }
 
     @Override
-    public boolean addDoctor(Doctor doctor) {
-        String sql = "INSERT INTO doctors(name, specialization) VALUES (?, ?)";
-        try(PreparedStatement ps = connection.prepareStatement(sql)){
+    public Doctor addDoctor(Doctor doctor) {
+        String sql = "INSERT INTO doctors(name, specialization) VALUES (?, ?) RETURNING id";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, doctor.getName());
             ps.setString(2, doctor.getSpecialization());
-            ps.executeUpdate();
-            return true;
-        } catch(SQLException e){ throw new RuntimeException(e);}
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int id = rs.getInt("id");
+                    return new Doctor(id, doctor.getName(), doctor.getSpecialization());
+                }
+            }
+            throw new RuntimeException("Failed to insert doctor (no id returned).");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Doctor getDoctorById(int id) {
         String sql = "SELECT * FROM doctors WHERE id = ?";
-        try(PreparedStatement ps = connection.prepareStatement(sql)){
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
-            try(ResultSet rs = ps.executeQuery()){
-                if(rs.next()) return new Doctor(rs.getInt("id"), rs.getString("name"), rs.getString("specialization"));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return new Doctor(rs.getInt("id"), rs.getString("name"), rs.getString("specialization"));
             }
-        } catch(SQLException e){ throw new RuntimeException(e);}
+        } catch (SQLException e) { throw new RuntimeException(e); }
         return null;
     }
 
@@ -43,16 +51,16 @@ public class DoctorRepositoryImpl implements IDoctorRepository {
     public List<Doctor> getAllDoctors() {
         List<Doctor> list = new ArrayList<>();
         String sql = "SELECT * FROM doctors";
-        try(Statement st = connection.createStatement(); ResultSet rs = st.executeQuery(sql)){
-            while(rs.next()){
+        try (Statement st = connection.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
                 list.add(new Doctor(rs.getInt("id"), rs.getString("name"), rs.getString("specialization")));
             }
-        } catch(SQLException e){ throw new RuntimeException(e);}
+        } catch (SQLException e) { throw new RuntimeException(e); }
         return list;
     }
 
     @Override
-    public List<Doctor> getDoctorsBySpecialization(String specialization){
+    public List<Doctor> getDoctorsBySpecialization(String specialization) {
         return getAllDoctors().stream()
                 .filter(d -> d.getSpecialization().equalsIgnoreCase(specialization))
                 .collect(Collectors.toList());
