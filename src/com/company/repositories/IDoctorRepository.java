@@ -4,7 +4,7 @@ import com.company.models.Doctor;
 import java.util.List;
 
 public interface IDoctorRepository {
-    boolean addDoctor(Doctor doctor);
+    Doctor addDoctor(Doctor doctor);
     Doctor getDoctorById(int id);
     List<Doctor> getAllDoctors();
     List<Doctor> getDoctorsBySpecialization(String specialization);
