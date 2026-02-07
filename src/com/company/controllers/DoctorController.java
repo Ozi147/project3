@@ -13,14 +13,22 @@ public class DoctorController {
         this.repo = repo;
     }
 
-    public Doctor addDoctor(String name, String specialization){
-        if(name == null  name.isBlank()) throw new RuntimeException("invalid name");
-        if(specialization == null  specialization.isBlank()) throw new RuntimeException("invalid specialization");
-        Doctor doctor = new Doctor(name, specialization);
+    public Doctor addDoctor(String name, String specialization) {
+        if (name == null || name.isBlank()) {
+            throw new RuntimeException("invalid name");
+        }
+
+        if (specialization == null || specialization.isBlank()) {
+            throw new RuntimeException("invalid specialization");
+        }
+
+        Doctor doctor = new Doctor(name.trim(), specialization.trim());
         Doctor created = repo.addDoctor(doctor);
+
         System.out.println("Doctor added: " + created.getName());
         return created;
     }
+
 
     public List<Doctor> getDoctorsBySpecialization(String specialization){
         return repo.getDoctorsBySpecialization(specialization);
