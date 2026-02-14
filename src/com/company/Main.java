@@ -82,8 +82,16 @@ public class Main {
                     System.out.println("Please enter your password:");
                     String password = sc.nextLine();
 
+                    // 1) пробуем как хеш (если в БД лежат SHA-256)
+                    String hashed = Password.sha256(password);
                     Integer patientId = patientAccountRepo
-                            .findPatientIdByCredentials(username, Password.sha256(password));
+                            .findPatientIdByCredentials(username, hashed);
+
+                    // 2) если не нашли — пробуем как "сырой" пароль (как у тебя сейчас в БД: 1111/2222/7777)
+                    if (patientId == null) {
+                        patientId = patientAccountRepo
+                                .findPatientIdByCredentials(username, password);
+                    }
 
                     if (patientId == null) {
                         System.out.println("Invalid credentials");
@@ -114,7 +122,6 @@ public class Main {
                         System.out.println("Appointment created.");
                     }
 
-
                     System.out.println("Do you want to see your appointments? (yes/no)");
                     if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
                         appointmentCtrl
@@ -123,7 +130,6 @@ public class Main {
                                         System.out.println("DoctorId=" + a.getDoctorId()
                                                 + " | Date=" + a.getDate()));
                     }
-
 
                     System.out.println("Do you want to see your symptom history? (yes/no)");
                     if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
@@ -150,16 +156,27 @@ public class Main {
                 /* ===================== DOCTOR ===================== */
                 case "doctor" -> {
                     System.out.println("Username:");
-                    String username = sc.nextLine();
+                    String username = sc.nextLine().trim();
 
                     System.out.println("Password:");
                     String password = sc.nextLine();
 
+                    // 1) пробуем как хеш (если в БД лежат SHA-256)
+                    String hashed = Password.sha256(password);
                     Integer doctorId =
                             doctorAccountRepo.findDoctorIdByCredentials(
                                     username,
-                                    Password.sha256(password)
+                                    hashed
                             );
+
+                    // 2) если не нашли — пробуем как "сырой" пароль (как у тебя сейчас в БД: 1111/2222/7777)
+                    if (doctorId == null) {
+                        doctorId =
+                                doctorAccountRepo.findDoctorIdByCredentials(
+                                        username,
+                                        password
+                                );
+                    }
 
                     if (doctorId == null) {
                         System.out.println("Invalid credentials");
@@ -189,7 +206,6 @@ public class Main {
                                                 r.getPatientName() + " | " +
                                                         r.getSymptom()));
                     }
-
 
                     System.out.println("Do you want to close an appointment? (yes/no)");
                     if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
@@ -249,7 +265,6 @@ public class Main {
                     String spec = sc.nextLine();
 
                     Doctor d = doctorCtrl.addDoctor(dName, spec);
-
 
                     Doctor loaded = doctorCtrl.getDoctorById(d.getId());
                     System.out.println("Created: " + loaded.getName());
